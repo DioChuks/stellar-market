@@ -1,13 +1,19 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import { createServer } from "http";
 import { config } from "./config";
 import routes from "./routes";
 import { apiRateLimiter, authRateLimiter } from "./middleware/rate-limit";
 import { sanitizeInput } from "./middleware/sanitize";
 import { errorHandler } from "./middleware/error";
+import { initSocket } from "./socket";
 
 const app = express();
+const httpServer = createServer(app);
+
+// Attach Socket.io
+initSocket(httpServer);
 
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
@@ -47,8 +53,8 @@ app.use((_req, res) => {
 // Error handler
 app.use(errorHandler);
 
-app.listen(config.port, () => {
+httpServer.listen(config.port, () => {
   console.log(`StellarMarket API running on port ${config.port}`);
 });
 
-export default app;
+export { app, httpServer };
